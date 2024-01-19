@@ -17,6 +17,7 @@ bool quit = false;
 // IDs for VAO and VBO
 GLuint vertexArrayObject = 0;
 GLuint vertexBufferObject = 0;
+GLuint vertexBufferObject2 = 0;
 
 // Program object (ID for graphics pipeline)
 GLuint graphicsPipelineShaderProgram = 0;
@@ -106,7 +107,8 @@ static void getOpenGLVersionInfo()
 static void vertexSpecification()
 {
 	// on CPU
-	const std::vector<GLfloat> vertexPos = {
+	const std::vector<GLfloat> vertexPos = 
+	{
 		// OpenGL coords : [-1, 1]
 		// triangle 1
 		// X      Y     Z
@@ -114,9 +116,25 @@ static void vertexSpecification()
 		-0.2f, -0.8f, 0.0f, // vertex 2
 		-0.4f,  0.0f, 0.0f, // vertex 3
 
+		// triangle 2
 		 0.5f, 0.0f, 0.0f,	// vertex 1
 		 0.8f, 0.0f, 0.0f,  // vertex 2
 		 0.0f, 0.8f, 0.0f   // vertex 3
+	};
+
+	const std::vector<GLfloat> vertexCol = 
+	{
+		// OpenGL coords : [-1, 1]
+		// triangle 1
+		// R      G     B
+		1.0f, 0.0f, 0.0f,	// vertex 1
+		0.0f, 1.0f, 0.0f, // vertex 2
+		0.0f, 0.0f, 1.0f,// vertex 3
+
+		// triangle 2
+		0.0f, 1.0f, 0.0f,	// vertex 1
+		1.0f, 0.0f, 0.0f,  // vertex 2
+		0.0f, 0.0f, 1.0f   // vertex 3
 	};
 
 	// ship to GPU
@@ -124,24 +142,43 @@ static void vertexSpecification()
 	glGenVertexArrays(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject); // use this VAO
 
-	// set up VBO
+	// ------------- vertex position setup ----------------
+
+	// set up VBO for position
 	glGenBuffers(1, &vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject); // use this VBO
 	// loads data to VBO
 	glBufferData(GL_ARRAY_BUFFER,
-		vertexPos.size() * sizeof(GLfloat),
-		vertexPos.data(),
+		vertexPos.size() * sizeof(GLfloat), // buffer size
+		vertexPos.data(),					// pointer to data
 		GL_STATIC_DRAW);
 
 	// telling how VAO should access VBO
-	// enables attribute (position, here)
+	// enables position attr. (0)
 	glEnableVertexAttribArray(0);
 	// x, y, z (3 fp elements/vertex)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+	// ------------- vertex color setup ----------------
+
+	// set up VBO for color
+	glGenBuffers(1, &vertexBufferObject2);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject2); // use this VBO
+	// loads data to VBO
+	glBufferData(GL_ARRAY_BUFFER,
+		vertexCol.size() * sizeof(GLfloat),
+		vertexCol.data(),
+		GL_STATIC_DRAW);
+
+	// enables color attr. (1)
+	glEnableVertexAttribArray(1);
+	// r, g, b (3 fp elements/vertex)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
 	// bind with 0, aka done with VAO
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 static void initialize()
