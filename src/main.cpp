@@ -13,7 +13,7 @@ SDL_Window* window = nullptr;
 SDL_GLContext openGLContext = nullptr;
 
 bool quit = false;
-
+bool quite = true;
 // IDs for VAO and VBO
 GLuint vertexArrayObject = 0;
 GLuint vertexBufferObject = 0;
@@ -48,6 +48,7 @@ static GLuint compileShader(GLuint type, const std::string source)
 	{
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
 	}
+// IDs for VAO and VBO
 	else if (type == GL_FRAGMENT_SHADER)
 	{
 		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
@@ -88,8 +89,8 @@ static GLuint createShaderProgram(const std::string& vertexShaderSrc,
 static void createGraphicsPipeline()
 {
 	// can load shader source from file
-	std::string vertexShaderSrc = loadShaderAsString(R"(C:\OpenGL\Shaders\vert.glsl.txt)");
-	std::string fragmentShaderSrc = loadShaderAsString(R"(C:\OpenGL\Shaders\frag.glsl.txt)");
+	std::string vertexShaderSrc = loadShaderAsString("/home/mevil/OpenGL/Shaders/vert.glsl");
+	std::string fragmentShaderSrc = loadShaderAsString("/home/mevil/OpenGL/Shaders/frag.glsl");
 	graphicsPipelineShaderProgram = createShaderProgram(vertexShaderSrc, 
 		fragmentShaderSrc);
 }
