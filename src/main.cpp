@@ -6,28 +6,25 @@
 #include <fstream>
 #include <string>
 
-const int screenHeight = 480;
-const int screenWidth = 600;
+const int screenHeight = 600;
+const int screenWidth = 800;
 
 SDL_Window* window = nullptr;
 SDL_GLContext openGLContext = nullptr;
 
 bool quit = false;
-bool quite = true;
+
 // IDs for VAO and VBO
 GLuint vertexArrayObject = 0;
 GLuint vertexBufferObject = 0;
-GLuint vertexBufferObject2 = 0;
 
 // Program object (ID for graphics pipeline)
 GLuint graphicsPipelineShaderProgram = 0;
 
-
-
 static std::string loadShaderAsString(const std::string& filename)
 {
-	std::string result = ""; // to store shader program
-	std::string line;
+  std::string result = ""; // to store shader program
+  std::string line;
 	std::ifstream file(filename);
 
 	if (file.is_open())
@@ -48,7 +45,7 @@ static GLuint compileShader(GLuint type, const std::string source)
 	{
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
 	}
-// IDs for VAO and VBO
+  // IDs for VAO and VBO
 	else if (type == GL_FRAGMENT_SHADER)
 	{
 		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
@@ -108,73 +105,55 @@ static void getOpenGLVersionInfo()
 static void vertexSpecification()
 {
 	// on CPU
-	const std::vector<GLfloat> vertexPos = 
+	const std::vector<GLfloat> vertices = 
 	{
 		// OpenGL coords : [-1, 1]
-		// triangle 1
-		// X      Y     Z
-		-0.8f, -0.8f, 0.0f,	// vertex 1
-		-0.2f, -0.8f, 0.0f, // vertex 2
-		-0.4f,  0.0f, 0.0f, // vertex 3
+    // triangle 1
+		-0.8f, -0.8f, 0.0f,	// vertex 1 Pos
+		 1.0f, 0.0f, 0.0f,  // vertex 1 Col
+		-0.2f, -0.8f, 0.0f, 
+		 0.0f, 1.0f, 0.0f, 
+		-0.4f,  0.0f, 0.0f,
+		 0.0f, 0.0f, 1.0f,
 
 		// triangle 2
-		 0.5f, 0.0f, 0.0f,	// vertex 1
-		 0.8f, 0.0f, 0.0f,  // vertex 2
-		 0.0f, 0.8f, 0.0f   // vertex 3
+		 0.5f, 0.0f, 0.0f,		
+     0.0f, 1.0f, 0.0f,	
+		 0.8f, 0.0f, 0.0f,  
+     1.0f, 0.0f, 0.0f,
+     0.0f, 0.8f, 0.0f, 
+     0.0f, 0.0f, 1.0f   
 	};
 
-	const std::vector<GLfloat> vertexCol = 
-	{
-		// OpenGL coords : [-1, 1]
-		// triangle 1
-		// R      G     B
-		1.0f, 0.0f, 0.0f,	// vertex 1
-		0.0f, 1.0f, 0.0f, // vertex 2
-		0.0f, 0.0f, 1.0f,// vertex 3
-
-		// triangle 2
-		0.0f, 1.0f, 0.0f,	// vertex 1
-		1.0f, 0.0f, 0.0f,  // vertex 2
-		0.0f, 0.0f, 1.0f   // vertex 3
-	};
 
 	// ship to GPU
 	// set up VAO with an ID (vertexArrayObject)
 	glGenVertexArrays(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject); // use this VAO
 
-	// ------------- vertex position setup ----------------
-
-	// set up VBO for position
+	// set up VBO with color and position
 	glGenBuffers(1, &vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject); // use this VBO
 	// loads data to VBO
 	glBufferData(GL_ARRAY_BUFFER,
-		vertexPos.size() * sizeof(GLfloat), // buffer size
-		vertexPos.data(),					// pointer to data
+		vertices.size() * sizeof(GLfloat),   // buffer size
+		vertices.data(),					           // pointer to data
 		GL_STATIC_DRAW);
 
 	// telling how VAO should access VBO
-	// enables position attr. (0)
-	glEnableVertexAttribArray(0);
-	// x, y, z (3 fp elements/vertex)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-	// ------------- vertex color setup ----------------
-
-	// set up VBO for color
-	glGenBuffers(1, &vertexBufferObject2);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject2); // use this VBO
-	// loads data to VBO
-	glBufferData(GL_ARRAY_BUFFER,
-		vertexCol.size() * sizeof(GLfloat),
-		vertexCol.data(),
-		GL_STATIC_DRAW);
-
-	// enables color attr. (1)
-	glEnableVertexAttribArray(1);
-	// r, g, b (3 fp elements/vertex)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0); // pos
+	glEnableVertexAttribArray(1); // col
+  // x, y, z (3 fp elements/vertex)
+	glVertexAttribPointer(0,                         // VAO attr.
+                        3,                         // # of elems in attr
+                        GL_FLOAT,                  // type 
+                        GL_FALSE,                  // normalized?
+                        6 * sizeof(GLfloat),       // buffer size for one vertex
+                        (void*)0);                 // offset
+	
+  // r, g, b (3 fp elements/vertex)
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 
+      (GLvoid*)(sizeof(GLfloat) * 3));
 
 	// bind with 0, aka done with VAO
 	glBindVertexArray(0);
@@ -246,7 +225,7 @@ static void input()
 			std::cout << "Bye!" << "\n";
 			quit = true;
 		}
-	}
+  }
 }
 
 static void preDraw()
@@ -317,4 +296,5 @@ int main()
 	cleanup();
 
 	return 0;
+
 }
