@@ -109,21 +109,21 @@ static void vertexSpecification()
 	{
 		// OpenGL coords : [-1, 1]
     // triangle 1
-		-0.8f, -0.8f, 0.0f,	// vertex 1 Pos
-		 1.0f, 0.0f, 0.0f,  // vertex 1 Col
-		-0.2f, -0.8f, 0.0f, 
+		-0.5f, -0.5f, 0.0f,	// lower left vert Pos
+		 1.0f, 0.0f, 0.0f,  // lower left ver  Col
+		 0.5f, -0.5f, 0.0f, // lower right
 		 0.0f, 1.0f, 0.0f, 
-		-0.4f,  0.0f, 0.0f,
+		 -0.5f, 0.5f, 0.0f, // upper left
 		 0.0f, 0.0f, 1.0f,
 
-		// triangle 2
-		 0.5f, 0.0f, 0.0f,		
-     0.0f, 1.0f, 0.0f,	
-		 0.8f, 0.0f, 0.0f,  
-     1.0f, 0.0f, 0.0f,
-     0.0f, 0.8f, 0.0f, 
-     0.0f, 0.0f, 1.0f   
-	};
+     // triangle 2
+		 0.5f, -0.5f, 0.0f,	// lower right 
+		 0.0f, 1.0f, 0.0f,  
+     0.5f, 0.5f, 0.0f,  // upper right
+     0.0f, 1.0f, 0.0f, 
+     -0.5f, 0.5f, 0.0f, // upper left
+     0.0f, 0.0f, 1.0f
+  };
 
 
 	// ship to GPU
