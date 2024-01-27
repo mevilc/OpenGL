@@ -17,6 +17,7 @@ bool quit = false;
 // IDs for VAO and VBO
 GLuint vertexArrayObject = 0;
 GLuint vertexBufferObject = 0;
+GLuint indexBufferObject = 0;
 
 // Program object (ID for graphics pipeline)
 GLuint graphicsPipelineShaderProgram = 0;
@@ -42,14 +43,10 @@ static GLuint compileShader(GLuint type, const std::string source)
 	GLuint shaderObject{ };
 
 	if (type == GL_VERTEX_SHADER)
-	{
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
-	}
-  // IDs for VAO and VBO
+	// IDs for VAO and VBO
 	else if (type == GL_FRAGMENT_SHADER)
-	{
 		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-	}
 
 	const char* src = source.c_str();
 	glShaderSource(shaderObject, 1, &src, nullptr);
@@ -86,8 +83,8 @@ static GLuint createShaderProgram(const std::string& vertexShaderSrc,
 static void createGraphicsPipeline()
 {
 	// can load shader source from file
-	std::string vertexShaderSrc = loadShaderAsString("/home/mevil/OpenGL/Shaders/vert.glsl");
-	std::string fragmentShaderSrc = loadShaderAsString("/home/mevil/OpenGL/Shaders/frag.glsl");
+	std::string vertexShaderSrc = loadShaderAsString(R"(C:\OpenGL\Shaders\vert.glsl.txt)");
+	std::string fragmentShaderSrc = loadShaderAsString(R"(C:\OpenGL\Shaders\frag.glsl.txt)");
 	graphicsPipelineShaderProgram = createShaderProgram(vertexShaderSrc, 
 		fragmentShaderSrc);
 }
@@ -108,22 +105,19 @@ static void vertexSpecification()
 	const std::vector<GLfloat> vertices = 
 	{
 		// OpenGL coords : [-1, 1]
-    // triangle 1
+		// 0 - vertex
 		-0.5f, -0.5f, 0.0f,	// lower left vert Pos
-		 1.0f, 0.0f, 0.0f,  // lower left ver  Col
-		 0.5f, -0.5f, 0.0f, // lower right
-		 0.0f, 1.0f, 0.0f, 
-		 -0.5f, 0.5f, 0.0f, // upper left
-		 0.0f, 0.0f, 1.0f,
-
-     // triangle 2
-		 0.5f, -0.5f, 0.0f,	// lower right 
-		 0.0f, 1.0f, 0.0f,  
-     0.5f, 0.5f, 0.0f,  // upper right
-     0.0f, 1.0f, 0.0f, 
-     -0.5f, 0.5f, 0.0f, // upper left
-     0.0f, 0.0f, 1.0f
-  };
+		1.0f, 0.0f, 0.0f,   // lower left ver  Col
+		// 1 - vertex
+		0.5f, -0.5f, 0.0f,  // lower right
+		0.0f, 1.0f, 0.0f, 
+		// 2 - vertex
+		-0.5f, 0.5f, 0.0f,  // upper left
+		0.0f, 0.0f, 1.0f,   
+		// 3 - vertex	    
+		0.5f, 0.5f, 0.0f,   // upper right
+		0.0f, 0.0f, 1.0f
+	};
 
 
 	// ship to GPU
@@ -137,28 +131,39 @@ static void vertexSpecification()
 	// loads data to VBO
 	glBufferData(GL_ARRAY_BUFFER,
 		vertices.size() * sizeof(GLfloat),   // buffer size
-		vertices.data(),					           // pointer to data
+		vertices.data(),					 // pointer to data
+		GL_STATIC_DRAW);
+
+	// set up IBO data
+	// order in which vertices to draw following windimg order
+	const std::vector< GLuint > indexBufferData{ 2, 0, 1, 3, 2, 1 };
+
+	// set up IBO to store indices to draw from
+	glGenBuffers(1, &indexBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject); // use this IBO
+	// load data to IBO
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		indexBufferData.size() * sizeof(GLuint),
+		indexBufferData.data(),
 		GL_STATIC_DRAW);
 
 	// telling how VAO should access VBO
 	glEnableVertexAttribArray(0); // pos
 	glEnableVertexAttribArray(1); // col
-  // x, y, z (3 fp elements/vertex)
+	// x, y, z (3 fp elements/vertex)
 	glVertexAttribPointer(0,                         // VAO attr.
-                        3,                         // # of elems in attr
-                        GL_FLOAT,                  // type 
-                        GL_FALSE,                  // normalized?
-                        6 * sizeof(GLfloat),       // buffer size for one vertex
-                        (void*)0);                 // offset
+						  3,                         // # of elems in attr
+						  GL_FLOAT,                  // type 
+						  GL_FALSE,                  // normalized?
+						  6 * sizeof(GLfloat),       // buffer size for one vertex
+						  (GLvoid*)0);                 // offset
 	
-  // r, g, b (3 fp elements/vertex)
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 
+	// r, g, b (3 fp elements/vertex)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 
       (GLvoid*)(sizeof(GLfloat) * 3));
 
 	// bind with 0, aka done with VAO
 	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
 }
 
 static void initialize()
@@ -187,7 +192,7 @@ static void initialize()
 	// create a window to interact with OpenGL
 	window = SDL_CreateWindow("window", 50, 50, screenWidth, screenHeight,
 		SDL_WINDOW_OPENGL);
-	if (window == nullptr)
+	if (!window)
 	{
 		std::cerr << "Failed to create SDL2 window" << "\n";
 		exit(1);
@@ -195,7 +200,7 @@ static void initialize()
 	
 	// create an OpenGL context to be contained in window
 	openGLContext = SDL_GL_CreateContext(window);
-	if (openGLContext == nullptr)
+	if (!openGLContext)
 	{
 		std::cerr << "Failed to create OpenGL context" << "\n";
 		exit(1);
@@ -225,7 +230,7 @@ static void input()
 			std::cout << "Bye!" << "\n";
 			quit = true;
 		}
-  }
+	}
 }
 
 static void preDraw()
@@ -242,6 +247,7 @@ static void preDraw()
 
 	// use this pipeline
 	glUseProgram(graphicsPipelineShaderProgram);
+	
 }
 
 static void draw()
@@ -250,8 +256,12 @@ static void draw()
 	glBindVertexArray(vertexArrayObject);
 	// use this VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 	
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	// render
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid* )0);
+
 }
 
 static void mainLoop()
